@@ -713,9 +713,9 @@
 
         const chickSprite = {
           img: new Image(),
-          src: "assets/sprites/stage04/penny_chicks_idel.png",
+          src: "assets/sprites/stage04/penny_idle.png",
           cols: 3,
-          rows: 2,
+          rows: 1,
           loaded: false,
           frameW: 0,
           frameH: 0,
@@ -1132,16 +1132,18 @@
         let cutsceneTimer = null;
 
         // STREAMLINED: one popup before play, matching stage01's pattern —
-        // a single guardian-beat card (no audio file exists yet for Penny)
-        // that starts play directly. The detailed rules that used to live
-        // in a second overlay are dropped since the always-visible
-        // "How to Play" side card already covers goal/controls.
+        // a single guardian-beat card that starts play directly. The
+        // detailed rules that used to live in a second overlay are dropped
+        // since the always-visible "How to Play" side card already covers
+        // goal/controls.
         function showPennyIntroBeat() {
           GOGUi.showGuardianBeat({
             emoji: "🐧",
             name: "Penny",
             role: "Guardian of the Ice",
             line: "The ice keeps melting under my feet, and my chicks are lost out there… Will you help me bring them home?",
+            audio: audio,
+            audioPath: "assets/audio/stage04/penny_intro_lines.mp3",
             buttonLabel: "Let's save the chicks!",
             autoDismissMs: 10000,
             onDone: function () {
@@ -1291,6 +1293,8 @@
                 body: "“My chicks are safe and the ice feels solid again! Thank you.” 💙<br><br>Penny wakes completely as the sea calms and the ice reforms.",
                 stars: pendingStars,
                 factText: stageMeta.fact,
+                narrationAudio: audio,
+                narrationPath: "assets/audio/stage04/penny_outro_lines.mp3",
                 primaryLabel: "Back to Map",
                 secondaryLabel: "Play Again",
                 onPrimary: function () {
@@ -2556,65 +2560,6 @@
           ctx.textAlign = "left";
           ctx.textBaseline = "middle";
           ctx.fillText("💚 SAFE ICEBERG", b.x + 30, b.y - 20);
-
-          // 6. Draw Delivered chicks dancing
-          const delivered = state.chicks.filter((c) => c.delivered);
-          delivered.forEach((c, i) => {
-            const dance = Math.sin(state.time * 6.5 + i * 1.5) * 16;
-            const destW = 72;
-            const destH = chickSprite.loaded
-              ? (chickSprite.frameH / chickSprite.frameW) * destW
-              : 34;
-
-            if (chickSprite.loaded) {
-              const danceCycle = Math.floor(state.time * 7 + i) % 3;
-              let frame = 0;
-              if (danceCycle === 1) frame = 4;
-              else if (danceCycle === 2) frame = 5;
-
-              const col = frame % chickSprite.cols;
-              const row = Math.floor(frame / chickSprite.cols);
-              const sx = col * chickSprite.frameW;
-              const sy = row * chickSprite.frameH;
-
-              const xPos = b.x + 76 + i * 54;
-              const yPos = b.y - 40 + dance;
-
-              ctx.save();
-              ctx.translate(xPos, yPos);
-              ctx.drawImage(
-                chickSprite.img,
-                sx,
-                sy,
-                chickSprite.frameW,
-                chickSprite.frameH,
-                -destW / 2,
-                -destH,
-                destW,
-                destH,
-              );
-              ctx.restore();
-            } else {
-              const xPos = b.x + 76 + i * 54;
-              const yPos = b.y - 32 + dance;
-              drawEmoji("🐥", xPos, yPos, 40);
-            }
-
-            // Celebratory particles
-            if (Math.random() < 0.02) {
-              state.particles.push({
-                x: b.x + 48 + i * 26 + (Math.random() - 0.5) * 8,
-                y: b.y - 45 + dance,
-                vx: (Math.random() - 0.5) * 12,
-                vy: -20 - Math.random() * 20,
-                life: 1.0,
-                maxLife: 1.0,
-                kind: "emoji",
-                text: Math.random() < 0.55 ? "❤️" : "✨",
-                size: 11
-              });
-            }
-          });
         }
 
         function drawValvePlatform() {
@@ -2906,8 +2851,8 @@
 
           if (chickSprite.loaded) {
             const destW = 42;
-            const destH = (chickSprite.frameH / chickSprite.frameW) * destW;
-            const frame = cheering ? 0 : (Math.floor(chick.bob) % 2 === 0 ? 3 : 0);
+            const destH = 52;
+            const frame = cheering ? 0 : (Math.floor(chick.bob) % 2 === 0 ? 1 : 0);
             const fCol = frame % chickSprite.cols;
             const fRow = Math.floor(frame / chickSprite.cols);
             const sx = fCol * chickSprite.frameW;
@@ -2965,7 +2910,7 @@
               }
             }
 
-            const destW = 32;
+            const destW = 42; // match the safe-iceberg chick size
             let destH = 34;
             if (chickSprite.loaded) {
               destH = (chickSprite.frameH / chickSprite.frameW) * destW;
@@ -3000,7 +2945,7 @@
             }
 
             if (chickSprite.loaded) {
-              let frame = 3; // Default standing
+              let frame = 0; // Default standing
               if (crying) {
                 // Worried fast-blink animation when platform is melting
                 const worryTime = (state.time * 4.0 + chick.bob) % 3.0;
@@ -3009,13 +2954,13 @@
                 } else if (worryTime < 2.0) {
                   frame = 2; // Eyes shut tight
                 } else {
-                  frame = 3; // Normal standing
+                  frame = 0; // Normal standing
                 }
               } else {
                 // Happy normal idle cycle
                 const chickTime = (state.time * 1.5 + chick.bob) % 5.0;
                 if (chickTime < 3.5) {
-                  frame = 3; // Normal look
+                  frame = 0; // Normal look
                 } else if (chickTime < 3.7) {
                   frame = 1; // Eyes half closed
                 } else if (chickTime < 3.95) {
@@ -3051,7 +2996,7 @@
               if (!chick.rescued && nearest && bestDist < 120) {
                 const icePct = Math.round((nearest.w / nearest.baseW) * 100);
                 if (icePct < 100) {
-                  const barW = 32;
+                  const barW = destW;
                   const barH = 5;
                   const bx = -barW / 2;
                   const by = -destH - 8;
@@ -3080,7 +3025,7 @@
               ctx.save();
               ctx.translate(drawX, drawY);
               ctx.rotate(drawRot);
-              drawEmoji("🐥", 0, -11, 22);
+              drawEmoji("🐥", 0, -11, 26);
               ctx.restore();
             }
 
@@ -3240,7 +3185,7 @@
             drawEmoji("🤗", x + p.w / 2 - p.facing * 18, y + p.h - destH - 12 + Math.sin(state.time * 6) * 3, 18);
 
             p.carrying.forEach((chick, index) => {
-              const cW = 28; // slightly smaller than ground chicks (32)
+              const cW = 28; // slightly smaller than ground chicks (42)
               const cH = chickSprite.loaded
                 ? (chickSprite.frameH / chickSprite.frameW) * cW
                 : 30;
@@ -3250,9 +3195,9 @@
               const offsetY = -destH * 0.4 - index * 12;
 
               if (chickSprite.loaded) {
-                // Alternately flap wings/cycle walking frames
+                // Alternately blink between the two idle frames
                 const flapCycle = Math.floor(state.time * 8 + index) % 2;
-                let frame = flapCycle === 0 ? 0 : 4; // Alternate smile/happy frame 0 and flapping waddle frame 4!
+                let frame = flapCycle === 0 ? 0 : 1; // Alternate open-eyes frame 0 and blink frame 1
 
                 const col = frame % chickSprite.cols;
                 const row = Math.floor(frame / chickSprite.cols);

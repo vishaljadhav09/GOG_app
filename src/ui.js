@@ -31,6 +31,11 @@
   }
 
 
+  // opts.narrationAudio (a GOGEngine.Audio instance) + opts.narrationPath gate
+  // the overlay's buttons: per project requirement, a stage with outro
+  // narration must not let the player proceed (back to map / play again)
+  // until that narration finishes. If sound is muted there's nothing to
+  // wait on, so the buttons stay enabled.
   function showOverlay(opts) {
     opts = opts || {};
     var wrap = document.createElement("div");
@@ -39,6 +44,10 @@
     var card = document.createElement("div");
     card.className = "brutal-box gog-overlay-card";
     if (opts.accent) card.style.background = opts.accent;
+
+    var hasNarration = !!(opts.narrationAudio && opts.narrationPath &&
+      typeof opts.narrationAudio.playNarration === "function");
+    var gateButtons = hasNarration && !opts.narrationAudio.muted;
 
     var html = "";
     html += '<h2 style="font-size:1.6rem;margin-bottom:10px;">' + (opts.title || "") + "</h2>";
@@ -54,10 +63,10 @@
     }
     html += '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">';
     if (opts.secondaryLabel) {
-      html += '<button class="brutal-btn ghost" data-role="secondary">' + opts.secondaryLabel + "</button>";
+      html += '<button class="brutal-btn ghost" data-role="secondary"' + (gateButtons ? " disabled" : "") + '>' + opts.secondaryLabel + "</button>";
     }
     if (opts.primaryLabel) {
-      html += '<button class="brutal-btn" data-role="primary">' + opts.primaryLabel + "</button>";
+      html += '<button class="brutal-btn" data-role="primary"' + (gateButtons ? " disabled" : "") + '>' + opts.primaryLabel + "</button>";
     }
     html += "</div>";
 
@@ -69,6 +78,15 @@
     var secondaryBtn = card.querySelector('[data-role="secondary"]');
     if (primaryBtn && opts.onPrimary) primaryBtn.addEventListener("click", opts.onPrimary);
     if (secondaryBtn && opts.onSecondary) secondaryBtn.addEventListener("click", opts.onSecondary);
+
+    if (hasNarration) {
+      opts.narrationAudio.playNarration(opts.narrationPath, {
+        onEnded: function () {
+          if (primaryBtn) primaryBtn.disabled = false;
+          if (secondaryBtn) secondaryBtn.disabled = false;
+        }
+      });
+    }
 
     return wrap;
   }
@@ -83,8 +101,13 @@
   // A full-screen "meet the guardian" / "thank you" story beat, shared by every
   // stage's pre-game intro and post-game outro. Pauses on the guardian's spoken
   // line (with an animated bobbing avatar) until the player taps through or the
-  // auto-dismiss timer fires — so non-readers still get the full beat, and
-  // impatient older kids can skip ahead.
+  // auto-dismiss timer fires.
+  //
+  // When opts.audio + opts.audioPath name a narration clip, per project
+  // requirement the stage must not proceed until that narration completes:
+  // the Continue button (and the auto-dismiss timer) stays disabled until the
+  // clip finishes, or fires immediately if sound is muted / the clip fails to
+  // play, so a missing or broken file can never soft-lock the stage.
   function showGuardianBeat(opts) {
     opts = opts || {};
     var wrap = document.createElement("div");
@@ -93,6 +116,10 @@
     var card = document.createElement("div");
     card.className = "brutal-box gog-overlay-card";
     if (opts.accent) card.style.background = opts.accent;
+
+    var hasNarration = !!(opts.audio && opts.audioPath && typeof opts.audio.playNarration === "function");
+    var gateContinue = hasNarration && !opts.audio.muted;
+    var continueLabel = opts.buttonLabel || "Continue";
 
     var html = "";
     html += '<div class="guideAvatar" style="font-size:4.2rem;line-height:1;margin-bottom:8px;">' +
@@ -104,16 +131,13 @@
     html += '<p style="font-family:var(--gog-font-hand);font-size:1.35rem;line-height:1.35;margin:0 0 20px;">“' +
       (opts.line || "") + '”</p>';
     html += '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">';
-    html += '<button class="brutal-btn" data-role="continue">' + (opts.buttonLabel || "Continue") + "</button>";
+    html += '<button class="brutal-btn" data-role="continue"' + (gateContinue ? " disabled" : "") + '>' +
+      (gateContinue ? "Listening…" : continueLabel) + "</button>";
     html += "</div>";
 
     card.innerHTML = html;
     wrap.appendChild(card);
     document.body.appendChild(wrap);
-
-    if (opts.audio && opts.audioPath && typeof opts.audio.playSfxFile === "function") {
-      opts.audio.playSfxFile(opts.audioPath);
-    }
 
     var dismissed = false;
     function dismiss() {
@@ -125,8 +149,24 @@
 
     var btn = card.querySelector('[data-role="continue"]');
     if (btn) btn.addEventListener("click", dismiss);
-    if (opts.autoDismissMs) {
-      setTimeout(dismiss, opts.autoDismissMs);
+
+    function readyToProceed() {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = continueLabel;
+      }
+      if (opts.autoDismissMs) {
+        setTimeout(dismiss, opts.autoDismissMs);
+      }
+    }
+
+    if (hasNarration) {
+      opts.audio.playNarration(opts.audioPath, { onEnded: readyToProceed });
+    } else {
+      if (opts.audio && opts.audioPath && typeof opts.audio.playSfxFile === "function") {
+        opts.audio.playSfxFile(opts.audioPath);
+      }
+      readyToProceed();
     }
 
     return wrap;

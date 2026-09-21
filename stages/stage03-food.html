@@ -1837,9 +1837,8 @@ flowers.push({
           triggerSeedReturnCutscene(function () {
             // STREAMLINED: one popup on win, not two — Buzz's grateful line
             // now lives inside the same fact/stars card instead of its own
-            // dialog first. The narration clip still plays, just without a
-            // dedicated popup of its own.
-            audio.playSfxFile("assets/audio/stage03/buzz_outro_lines.mp3");
+            // dialog first. The narration clip plays via the overlay itself,
+            // which gates its buttons until it completes.
             var stageMeta = window.GOGContent ? window.GOGContent.byId(STAGE_ID) : null;
             activeOverlay = GOGUi.showOverlay({
               accent: "var(--gog-tangerine)",
@@ -1847,6 +1846,8 @@ flowers.push({
               body: "“You brought my meadow back to life! The flowers are blooming again! 🌸”<br><br>Buzz did it — every last flower is blooming again.",
               stars: pendingStars,
               factText: stageMeta ? stageMeta.fact : "About 1 in 3 bites of the food we eat depends on pollinators like bees!",
+              narrationAudio: audio,
+              narrationPath: "assets/audio/stage03/buzz_outro_lines.mp3",
               primaryLabel: "Play Again ▶",
               onPrimary: function () {
                 GOGUi.closeOverlay(activeOverlay);

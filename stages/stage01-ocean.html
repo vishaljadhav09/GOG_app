@@ -3595,9 +3595,8 @@
           setTimeout(function () {
             // STREAMLINED: one popup on win, not two — Splash's grateful line
             // now lives inside the same fact/stars card instead of a separate
-            // guardian-beat dialog first. The narration clip still plays
-            // (unchanged), just without its own dedicated popup.
-            audio.playSfxFile("assets/audio/stage01/splash_outro_lines.mp3");
+            // guardian-beat dialog first. The narration clip plays via the
+            // overlay itself, which gates its buttons until it completes.
             triggerSeedReturnCutscene(function () {
               GOGUi.showOverlay({
                 accent: "var(--gog-white)",
@@ -3605,6 +3604,8 @@
                 body: "“You gave the reef its colours back! Thank you for saving my home. 🌈”<br><br>Splash wakes up and a Seed of Life flies back to the Guardian Tree.",
                 stars: rec.stars,
                 factText: stageMeta.fact,
+                narrationAudio: audio,
+                narrationPath: "assets/audio/stage01/splash_outro_lines.mp3",
                 primaryLabel: "Back to Map",
                 secondaryLabel: "Play Again",
                 onPrimary: function () {

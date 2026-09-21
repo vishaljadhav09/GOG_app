@@ -441,6 +441,48 @@
     }
   };
 
+  // Plays a one-shot narration clip and reports back when the stage is clear
+  // to proceed. Per project requirement, intro/outro narration gates progression:
+  // callers must not let the player continue until onEnded fires. If sound is
+  // muted there is nothing to wait on, so onEnded fires immediately; a load/
+  // playback error or an autoplay block also resolves immediately rather than
+  // soft-locking the stage, and a safety timeout covers a clip whose "ended"
+  // event never fires for any other reason.
+  Audio.prototype.playNarration = function (path, opts) {
+    opts = opts || {};
+    var onEnded = opts.onEnded || function () {};
+    if (this.muted) {
+      onEnded();
+      return null;
+    }
+    var clip;
+    try {
+      clip = new global.Audio(path);
+    } catch (e) {
+      onEnded();
+      return null;
+    }
+    var done = false;
+    var safety = setTimeout(finish, opts.maxWaitMs || 20000);
+    function finish() {
+      if (done) return;
+      done = true;
+      clearTimeout(safety);
+      onEnded();
+    }
+    clip.addEventListener("ended", finish);
+    clip.addEventListener("error", finish);
+    try {
+      var playPromise = clip.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(finish);
+      }
+    } catch (e) {
+      finish();
+    }
+    return clip;
+  };
+
   Audio.prototype.win = function () {
     this.bloom();
     this.playSfxFile("assets/audio/winning.mp3");
