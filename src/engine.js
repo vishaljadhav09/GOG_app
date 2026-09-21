@@ -245,6 +245,7 @@
     this._bgmMaxVol = 0.35;
     this._bgMusic = null;
     this._ambientMusic = null;
+    this._introBgm = null;
   }
 
   Audio.prototype._ensureCtx = function () {
@@ -365,9 +366,42 @@
     if (this.muted) {
       if (this._bgMusic) this._bgMusic.pause();
       if (this._ambientMusic) this._ambientMusic.pause();
+      if (this._introBgm) this._introBgm.pause();
     } else if (this._bgmPlaying) {
       if (this._bgMusic && this._bgMusic.paused) this._bgMusic.play().catch(function () {});
       if (this._ambientMusic && this._ambientMusic.paused) this._ambientMusic.play().catch(function () {});
+    }
+  };
+
+  // A quiet, looping music bed for the pre-game "meet the guardian" beat.
+  // Kept on its own channel (separate from initBgm/playBgm's gameplay music)
+  // since it plays underneath spoken narration and must stay low enough for
+  // the guardian's voice line to read clearly over it.
+  Audio.prototype.playIntroBgm = function (path, volume) {
+    this.stopIntroBgm();
+    if (this.muted) return null;
+    try {
+      var clip = new global.Audio(path);
+      clip.loop = true;
+      clip.volume = volume != null ? volume : 0.08;
+      var playPromise = clip.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(function () {});
+      }
+      this._introBgm = clip;
+      return clip;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  Audio.prototype.stopIntroBgm = function () {
+    if (this._introBgm) {
+      try {
+        this._introBgm.pause();
+        this._introBgm.currentTime = 0;
+      } catch (e) {}
+      this._introBgm = null;
     }
   };
 

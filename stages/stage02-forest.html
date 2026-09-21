@@ -2792,6 +2792,7 @@
             buttonLabel: "Let's plant trees!",
             autoDismissMs: 10000,
             onDone: function () {
+              audio.playBgm();
               GOGUi.say(
                 "Welcome! Plant trees to shield the rainforest from the Smog! 🌳",
               );
@@ -4316,7 +4317,6 @@
         });
 
         initBackground().finally(function () {
-          audio.playBgm();
           loop.start();
           showRaviIntroBeat();
         });

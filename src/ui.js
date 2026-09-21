@@ -143,8 +143,15 @@
     function dismiss() {
       if (dismissed) return;
       dismissed = true;
+      if (opts.audio && typeof opts.audio.stopIntroBgm === "function") {
+        opts.audio.stopIntroBgm();
+      }
       closeOverlay(wrap);
       if (opts.onDone) opts.onDone();
+    }
+
+    if (opts.audio && typeof opts.audio.playIntroBgm === "function") {
+      opts.audio.playIntroBgm("assets/audio/intro_bgm.mp3");
     }
 
     var btn = card.querySelector('[data-role="continue"]');
