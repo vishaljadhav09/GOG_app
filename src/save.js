@@ -22,7 +22,7 @@
       stageAssist: {},     // { stage01: 0, ... } current assist notch per stage
       stageAttempts: {},   // reserved for future use
       settings: {
-        sound: false,      // off by default per spec recommendation
+        sound: true,       // on by default per user request
         calmMode: false
       }
     };
