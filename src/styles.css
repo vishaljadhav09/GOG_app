@@ -4,6 +4,25 @@
    shadows, cream paper-grain background, punchy accents.
    ============================================================ */
 
+/* Local Offline Fonts */
+@font-face {
+  font-family: "Baloo 2";
+  src: url("./fonts/Baloo2.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Quicksand";
+  src: url("./fonts/Quicksand.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Caveat";
+  src: url("./fonts/Caveat.woff2") format("woff2");
+  font-display: swap;
+}
+
 :root {
   /* ---- palette ---- */
   --gog-cream:     #F5EFE0;
