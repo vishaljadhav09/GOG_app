@@ -1,5 +1,16 @@
 {
   "appId": "com.gog.app",
   "appName": "Guardians of Gaia",
-  "webDir": "www"
+  "webDir": "www",
+  "backgroundColor": "#F5EFE0",
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#F5EFE0"
+  },
+  "plugins": {
+    "StatusBar": {
+      "backgroundColor": "#F5EFE0",
+      "style": "DARK"
+    }
+  }
 }
