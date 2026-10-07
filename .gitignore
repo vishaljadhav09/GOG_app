@@ -35,3 +35,9 @@ Thumbs.db
 # Custom AI / Local Configs
 .claude
 CLAUDE.md
+
+www/
+android/app/build/
+android/.gradle/
+
+keystore.properties
