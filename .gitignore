@@ -1,43 +1,45 @@
 # Dependencies
 node_modules/
 
-# Generated build directories
+# Generated build & asset bundles
 www/
 
-# Android build outputs & IDE settings
+# Android build outputs & local machine configs
 android/.gradle/
 android/build/
 android/app/build/
 android/app/src/main/assets/public/
 android/app/src/main/assets/capacitor.plugins.json
+android/local.properties
 android/.idea/
 android/*.iml
 android/app/*.iml
+android/captures/
 
-# APKs, AABs, Keystores
+# Signing keys, APKs, AABs
 *.apk
 *.aab
 *.keystore
 *.jks
+keystore.properties
 
-# Logs & temp files
+# Python cache & temp files
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs & debug outputs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# System & IDE files
+# System & IDE settings
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
 
-# Custom AI / Local Configs
+# Custom local/AI configs
 .claude
 CLAUDE.md
-
-www/
-android/app/build/
-android/.gradle/
-
-keystore.properties
