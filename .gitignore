@@ -1,3 +1,37 @@
+# Dependencies
+node_modules/
+
+# Generated build directories
+www/
+
+# Android build outputs & IDE settings
+android/.gradle/
+android/build/
+android/app/build/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.plugins.json
+android/.idea/
+android/*.iml
+android/app/*.iml
+
+# APKs, AABs, Keystores
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Logs & temp files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# System & IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Custom AI / Local Configs
 .claude
 CLAUDE.md
-node_modules/
