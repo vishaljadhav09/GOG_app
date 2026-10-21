@@ -4,15 +4,26 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
   workflow_dispatch:
 
+# A newer push to the same ref supersedes an in-flight run (saves Actions minutes).
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   build:
-    name: Build Android APK
+    name: Build Android Debug APK
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout Repository
@@ -29,6 +40,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+
+      - name: Set up Gradle (cache)
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Install Node Dependencies
         run: npm ci
@@ -53,3 +67,98 @@ jobs:
           name: guardians-of-gaia-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
+  release:
+    name: Build Signed Release (APK + AAB)
+    # Only for version tags (git tag vX.Y.Z && git push origin vX.Y.Z); never for PRs.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Set up Java JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Gradle (cache)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Check signing secrets are configured
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          for v in KEYSTORE_B64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!v}" ]; then
+              echo "::error::Missing repository secret $v (Settings > Secrets and variables > Actions). See the gog-apk-release skill."
+              exit 1
+            fi
+          done
+
+      - name: Verify tag matches versionName
+        run: |
+          code_name=$(sed -n 's/.*versionName "\([^"]*\)".*/\1/p' android/app/build.gradle | head -1)
+          if [ "v${code_name}" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match versionName v${code_name} in android/app/build.gradle"
+            exit 1
+          fi
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Build Web Bundle (www)
+        run: npm run build
+
+      - name: Sync Capacitor Android Project
+        run: npx cap sync android
+
+      - name: Make Gradlew Executable
+        run: chmod +x android/gradlew
+
+      - name: Decode upload keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+        run: echo "$KEYSTORE_B64" | base64 -d > android/app/release.jks
+
+      - name: Build signed release APK and AAB
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          cd android
+          ./gradlew assembleRelease bundleRelease --stacktrace
+
+      - name: Verify APK is signed and AAB has no native libs
+        run: |
+          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)/apksigner"
+          "$apksigner" verify --print-certs android/app/build/outputs/apk/release/*.apk
+          echo "--- native libraries in AAB (none expected; 16 KB page-size relevant) ---"
+          unzip -l android/app/build/outputs/bundle/release/*.aab | grep '\.so$' || echo "none"
+
+      - name: Upload Release Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: guardians-of-gaia-release-${{ github.ref_name }}
+          path: |
+            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/bundle/release/*.aab
+          retention-days: 90
+
+      - name: Remove keystore from runner
+        if: always()
+        run: rm -f android/app/release.jks

@@ -1,5 +1,9 @@
 apply plugin: 'com.android.application'
 
+// Release signing: credentials come only from the environment (set as GitHub Actions secrets in CI).
+// If the keystore file is absent (local / PR / debug builds) the release build is simply unsigned.
+def releaseKeystore = file(System.getenv("KEYSTORE_PATH") ?: "release.jks") // relative to android/app
+
 android {
     namespace = "com.gog.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,8 +20,21 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (releaseKeystore.exists()) {
+                storeFile releaseKeystore
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
+            if (releaseKeystore.exists()) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
