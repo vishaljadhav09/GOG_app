@@ -40,6 +40,6 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Custom local/AI configs
+
+# Local Claude Code config (hooks/skills), not shared
 .claude
-CLAUDE.md

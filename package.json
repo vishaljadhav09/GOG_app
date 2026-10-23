@@ -1,19 +1,16 @@
 {
-  "name": "guardians-of-gaia",
+  "name": "guardians-of-gaia-app",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Android (Capacitor) build wrapper for Guardians of Gaia. The game itself lives in the web/ submodule.",
   "scripts": {
     "build": "node scripts/build-www.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "update-web": "git submodule update --init --remote web",
+    "sync": "npm run build && npx cap sync android"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vishaljadhav09/GOG_app.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/vishaljadhav09/GOG_app/issues"
   },
@@ -27,5 +24,6 @@
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.5.3"
-  }
+  },
+  "private": true
 }

@@ -1,40 +1,46 @@
+// Builds www/ (the Capacitor webDir) from the game in the `web/` git submodule.
+// The game lives ONLY in the web repo; nothing from it is committed in this repo.
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const rootDir = path.resolve(__dirname, '..');
+const webDir = path.join(rootDir, 'web');
 const wwwDir = path.join(rootDir, 'www');
 
-// List of source files and directories to include in the www build bundle
-const itemsToCopy = [
-  'index.html',
-  'src',
-  'data',
-  'stages',
-  'assets'
-];
+// Game files that make up the shipped bundle (paths relative to web/).
+const itemsToCopy = ['index.html', 'src', 'data', 'stages'];
 
-console.log('Building www directory for Capacitor...');
-
-// 1. Clean existing www directory if it exists
-if (fs.existsSync(wwwDir)) {
-  fs.rmSync(wwwDir, { recursive: true, force: true });
-  console.log('Cleaned existing www/ directory.');
+if (!fs.existsSync(path.join(webDir, 'index.html'))) {
+  console.error(
+    'web/ is empty or missing. Fetch the game first:\n' +
+    '  git submodule update --init web'
+  );
+  process.exit(1);
 }
 
-// 2. Recreate fresh www directory
+console.log('Building www/ from the web submodule...');
+
+if (fs.existsSync(wwwDir)) {
+  fs.rmSync(wwwDir, { recursive: true, force: true });
+}
 fs.mkdirSync(wwwDir, { recursive: true });
 
-// 3. Copy each item while preserving relative folder structure
-itemsToCopy.forEach((item) => {
-  const srcPath = path.join(rootDir, item);
-  const destPath = path.join(wwwDir, item);
-
-  if (fs.existsSync(srcPath)) {
-    fs.cpSync(srcPath, destPath, { recursive: true });
-    console.log(`  ✓ Copied ${item} -> www/${item}`);
-  } else {
-    console.warn(`  ⚠ Warning: ${item} not found at ${srcPath}`);
+for (const item of itemsToCopy) {
+  const src = path.join(webDir, item);
+  if (!fs.existsSync(src)) {
+    console.error(`Missing web/${item}: the web repo layout changed. Update scripts/build-www.js.`);
+    process.exit(1);
   }
-});
+  fs.cpSync(src, path.join(wwwDir, item), { recursive: true });
+  console.log(`  copied web/${item} -> www/${item}`);
+}
 
-console.log('\nBuild complete! All Web assets copied to www/');
+// Record which game version this bundle contains (shown in CI summary / in-app debugging).
+let sha = 'unknown';
+try {
+  sha = execSync('git rev-parse HEAD', { cwd: webDir }).toString().trim();
+} catch (e) { /* not a git checkout; keep "unknown" */ }
+fs.writeFileSync(path.join(wwwDir, 'version.txt'), `web ${sha}\n`);
+
+console.log(`\nDone. Game version: web ${sha.slice(0, 7)}`);
