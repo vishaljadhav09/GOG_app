@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- FileProvider roots. Capacitor's WebView chrome client / AssetUtil only ever share files from the app's
+     own cache, and the game uses no file input, camera, share or download. Nothing on shared (external)
+     storage is exposed. If a plugin ever needs more, add that single directory here, never ".". -->
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <external-path name="my_images" path="." />
     <cache-path name="my_cache_images" path="." />
 </paths>

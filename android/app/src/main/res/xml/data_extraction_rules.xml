@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ (API 31+) backup / device-transfer rules. DELIBERATE CHOICE:
+     the child's progress (stars, seeds, stages cleared, settings) is a small numeric JSON blob in the
+     WebView's localStorage ("gog_save_v1", written by web/src/save.js). It holds no personal data, so we
+     let Auto Backup and phone-to-phone transfer carry it, and NOTHING else (no cache, cookies, service
+     workers or other WebView storage). Listing an <include> means "only these paths".
+     Path: <app data>/app_webview/Default/Local Storage  (the default WebView profile's localStorage).
+     Not verified on a device here: restore a backup on a test phone before relying on it. To opt out,
+     replace each include with <exclude domain="root" path="." /> or set android:allowBackup="false". -->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="root" path="app_webview/Default/Local Storage" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="root" path="app_webview/Default/Local Storage" />
+    </device-transfer>
+</data-extraction-rules>

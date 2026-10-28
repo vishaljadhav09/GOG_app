@@ -3,11 +3,20 @@
   "appName": "Guardians of Gala",
   "webDir": "www",
   "backgroundColor": "#F5EFE0",
+  "server": {
+    "androidScheme": "https"
+  },
   "android": {
     "allowMixedContent": false,
+    "zoomEnabled": false,
+    "loggingBehavior": "debug",
     "backgroundColor": "#F5EFE0"
   },
   "plugins": {
+    "SystemBars": {
+      "hidden": true,
+      "initialViewportFitValueHint": "cover"
+    },
     "StatusBar": {
       "backgroundColor": "#F5EFE0",
       "style": "DARK"

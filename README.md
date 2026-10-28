@@ -25,7 +25,10 @@ submodule at `web/`.
 3. GitHub Actions builds the debug APK → Actions tab → run → Artifacts. The run summary shows
    which web commit is inside it.
 
-Android-only changes (icon, manifest, gradle, status bar, app name) are made here.
+Android-only changes (icon, manifest, gradle, orientation/immersive mode, splash, app name) are made here.
+
+The app is **landscape-only** (`sensorLandscape`), full-screen with transient system bars, keeps the screen on while
+playing and pauses the WebView (audio/timers) in the background. See `android/app/src/main/java/com/gog/app/MainActivity.java`.
 
 ## First clone
 
@@ -39,8 +42,12 @@ Forgot `--recurse-submodules`? `git submodule update --init`.
 
 ## Release
 
-1. Bump `versionCode` and `versionName` in `android/app/build.gradle`.
-2. `git tag vX.Y.Z && git push --tags` (the tag must equal `v<versionName>`).
+Local builds need **JDK 21** and the Android SDK (platform 36). Release builds **fail** if the keystore is missing
+(debug builds never need it). Everything Google Play needs is tracked in [PLAY-STORE-CHECKLIST.md](PLAY-STORE-CHECKLIST.md).
+
+1. Bump the version in `package.json` (`npm version 1.0.1 --no-git-tag-version`). It becomes `versionName`;
+   `versionCode` is the GitHub run number (override with `-PversionCode=N` / `-PversionName=x.y.z`; local builds use 1).
+2. `git tag vX.Y.Z && git push --tags` (the tag must equal `v<package.json version>`).
 3. The release job builds the signed APK + AAB from the web commit pinned at that tag.
 
 Repo secrets: `KEYSTORE_B64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.

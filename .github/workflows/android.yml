@@ -128,11 +128,12 @@ jobs:
             fi
           done
 
-      - name: Verify tag matches versionName
+      - name: Verify tag matches the app version
         run: |
-          code_name=$(sed -n 's/.*versionName "\([^"]*\)".*/\1/p' android/app/build.gradle | head -1)
-          if [ "v${code_name}" != "${GITHUB_REF_NAME}" ]; then
-            echo "::error::Tag ${GITHUB_REF_NAME} does not match versionName v${code_name} in android/app/build.gradle"
+          # versionName = "version" in package.json (android/app/build.gradle reads it); versionCode = run number.
+          pkg_version=$(node -p "require('./package.json').version")
+          if [ "v${pkg_version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match version v${pkg_version} in package.json (bump it with: npm version <x.y.z> --no-git-tag-version)"
             exit 1
           fi
 

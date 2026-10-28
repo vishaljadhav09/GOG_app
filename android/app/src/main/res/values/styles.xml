@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -9,14 +9,27 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <!-- Runtime theme: BridgeActivity.onCreate() applies this, and the splash theme below hands over to it
+         (postSplashScreenTheme). Landscape game, drawn edge to edge. -->
     <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- Cream behind the WebView (Capacitor paints the decor view with windowBackground): no white/dark
+             flash or letterbox, also on devices in system dark mode. -->
+        <item name="android:windowBackground">@color/gog_cream</item>
+        <!-- Let the game run under the notch/camera cut-out on the short edges (the left/right side in
+             landscape). The web layer keeps its content clear of it with env(safe-area-inset-*). API 28+;
+             older platforms ignore the attribute. -->
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="28">shortEdges</item>
     </style>
 
-
+    <!-- Launch theme: androidx core-splashscreen (native Android 12+ splash, compat splash below).
+         MainActivity calls installSplashScreen(), which swaps to postSplashScreenTheme. -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="android:background">@drawable/splash</item>
+        <item name="windowSplashScreenBackground">@color/gog_cream</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="28">shortEdges</item>
     </style>
 </resources>

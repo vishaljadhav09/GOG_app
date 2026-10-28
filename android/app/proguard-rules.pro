@@ -19,3 +19,12 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# --- Guardians of Gala ------------------------------------------------------------------------------
+# Only used when a build sets -Pminify=true (R8 is off by default, see build.gradle). Capacitor ships its
+# own consumer rules for plugins/bridge; these two cover the WebView bridge and readable crash stack traces.
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+-keepattributes JavascriptInterface,*Annotation*,SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile

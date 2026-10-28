@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The game is fully offline: Capacitor serves www/ from inside the app (https://localhost is intercepted
+     by the bridge, no socket is opened). Plain-text HTTP is therefore never needed, so refuse it. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

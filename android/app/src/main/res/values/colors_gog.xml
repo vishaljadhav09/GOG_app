@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cream paper background of the game (keep equal to capacitor.config.json backgroundColor). -->
+    <color name="gog_cream">#F5EFE0</color>
+</resources>

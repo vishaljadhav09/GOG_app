@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Splash icon for the Android 12+ SplashScreen API (and the androidx compat splash below API 31).
+     The system masks the icon to a circle 2/3 the size of the icon box, so the owl is inset 16.7%
+     (the same safe zone as the adaptive launcher icon) to keep the whole ring visible. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@mipmap/ic_launcher_foreground"
+    android:inset="16.7%" />
